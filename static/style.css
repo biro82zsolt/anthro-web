@@ -1,18 +1,65 @@
-body { font-family: system-ui, Segoe UI, Arial; margin: 0; color: #1f2937; }
-.nav { display:flex; gap:1rem; padding:0.75rem 1rem; background:#111827; color:#fff; align-items:center; }
-.nav a { color:#e5e7eb; text-decoration:none; }
-.nav .spacer { flex:1; }
+/* ===== Alap tipográfia és layout ===== */
+body { font-family: system-ui, "Segoe UI", Arial, sans-serif; margin: 0; color: #1f2937; }
 .container { max-width: 960px; margin: 1.5rem auto; padding: 0 1rem; }
 .hero { padding: 1rem 0; }
-.btn { display:inline-block; background:#2563eb; color:#fff; padding:0.5rem 0.9rem; border-radius:8px; text-decoration:none; border:none; }
-.btn-secondary { background:#6b7280; }
+
+/* Alap gomb – nem Bootstrap .btn felülírás! Csak saját helper. */
+.app-btn {
+  display:inline-block; background:#2563eb; color:#fff;
+  padding:0.5rem 0.9rem; border-radius:8px; text-decoration:none; border:none;
+}
+.app-btn.secondary { background:#6b7280; }
+
+/* Flash üzenetek (nem Bootstrap toast helyett, hanem egyszerű fallback) */
 .flash > div { padding: 0.5rem 0.75rem; margin: 0.25rem 0; border-radius: 6px; }
 .flash-success { background:#dcfce7; }
-.flash-danger { background:#fee2e2; }
+.flash-danger  { background:#fee2e2; }
 .flash-warning { background:#fef3c7; }
+
+/* Űrlapok */
 form label { display:block; margin:0.5rem 0; }
-input[type=file], input[type=text], input[type=password], input[type=email] { padding:0.4rem; width: min(480px, 100%); }
+input[type=file], input[type=text], input[type=password], input[type=email] {
+  padding:0.4rem; width: min(480px, 100%);
+}
+
+/* Listák és táblák */
 .list { list-style:none; padding:0; }
 .list li { padding:0.4rem 0; border-bottom:1px solid #eee; }
 .table { width:100%; border-collapse: collapse; }
-.table th, .table td { border-bottom:1px solid #e5e7eb; padding:0.5rem; text-align:left; }
+.table th, .table td { border-bottom:1px solid #e5e7eb; padding:0.5rem; text-align:left; vertical-align: middle; }
+
+/* Feature ikon kártyák */
+.feature .icon {
+  width: 44px; height: 44px; display: inline-flex; align-items:center; justify-content:center;
+  border-radius: 10px; font-size: 20px;
+}
+
+/* ===== Bootstrap NAVBAR finomítás ===== */
+/* Nyelvváltó link jól olvasható legyen a kék navon */
+.navbar .nav-link {
+  color: #ffffffcc;       /* halvány fehér alap */
+  font-weight: 500;
+}
+.navbar .nav-link:hover { color: #ffffff; }
+
+/* Egységes kapszula gombok a navbar jobb oldalán */
+.navbar .btn-nav {
+  color: #0d6efd !important;          /* sötétebb kék szöveg */
+  background-color: #ffffff !important;
+  border-radius: 22px;
+  font-weight: 600;
+  padding: 6px 14px;
+  margin-left: 8px;
+  text-decoration: none !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  display: inline-flex; align-items: center;
+}
+.navbar .btn-nav:hover {
+  background-color: #ffd54d !important; /* kellemes arany hover */
+  color: #000 !important;
+}
+
+/* Dropdown esztétika */
+.navbar .dropdown-menu { border-radius: 12px; }
+
+/* ===== Vége ===== */

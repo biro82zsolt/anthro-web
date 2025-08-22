@@ -1,9 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>{{ t.login }}</h2>
-<form method="post">
-  <label>Email <input name="email" type="email" required></label>
-  <label>Jelszó <input name="password" type="password" required></label>
-  <button class="btn" type="submit">{{ t.login }}</button>
-</form>
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">{{ t.login }}</h1>
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input name="email" type="email" class="form-control" required autocomplete="username">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Jelszó / Password</label>
+            <input name="password" type="password" class="form-control" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary w-100" type="submit"><i class="bi bi-box-arrow-in-right me-1"></i>{{ t.login }}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

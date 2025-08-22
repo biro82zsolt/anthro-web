@@ -1,44 +1,67 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="hero">
-  <h1>{{ t.hero_title }}</h1>
-  <p>{{ t.hero_sub }}</p>
+  <section class="py-5">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6">
+        <h1 class="display-5 fw-bold">{{ t.hero_title }}</h1>
+        <p class="lead text-secondary">{{ t.hero_sub }}</p>
+        <div class="d-flex gap-2 mt-3">
+          {% if current_user.is_authenticated %}
+            <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>{{ t.dashboard }}</a>
+          {% else %}
+            <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}"><i class="bi bi-box-arrow-in-right me-1"></i>{{ t.login }}</a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ url_for('request_access') }}"><i class="bi bi-person-plus me-1"></i>{{ t.request_access }}</a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-info-circle me-1"></i>{{ t.about_title }}</h5>
+            <p class="mb-2">{{ t.about_p1 }}</p>
+            <p class="mb-2">{{ t.about_p2 }}</p>
+            <ul class="mb-2">
+              <li>{{ t.about_li1 }}</li>
+              <li>{{ t.about_li2 }}</li>
+              <li>{{ t.about_li3 }}</li>
+            </ul>
+            <p class="mb-0">{{ t.about_p3 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <div style="margin:1rem 0;">
-    {% if not current_user.is_authenticated %}
-      <a class="btn" href="{{ url_for('login') }}">{{ t.login }}</a>
-      <a class="btn btn-secondary" href="{{ url_for('request_access') }}">{{ t.request_access }}</a>
-    {% else %}
-      <a class="btn" href="{{ url_for('dashboard') }}">{{ t.dashboard }}</a>
-    {% endif %}
-  </div>
-</section>
-
-<hr>
-
-<section>
-  <h2>{{ t.about_title }}</h2>
-  <p>{{ t.about_p1 }}</p>
-  <p>{{ t.about_p2 }}</p>
-  <ul>
-    <li>{{ t.about_li1 }}</li>
-    <li>{{ t.about_li2 }}</li>
-    <li>{{ t.about_li3 }}</li>
-  </ul>
-  <p>{{ t.about_p3 }}</p>
-</section>
-
-<hr>
-
-<section>
-  <h2>{{ t.features_title }}</h2>
-  <ul>
-    <li>{{ t.f_template }}</li>
-    <li>{{ t.f_upload }}</li>
-    <li>{{ t.f_results_excel }}</li>
-    <li>{{ t.f_results_pdf }}</li>
-    <li>{{ t.f_history }}</li>
-    <li>{{ t.f_multilang }}</li>
-  </ul>
-</section>
+  <section>
+    <h2 class="h4 fw-semibold mb-3">{{ t.features_title }}</h2>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="feature card h-100 shadow-sm border-0">
+          <div class="card-body">
+            <div class="icon bg-primary-subtle text-primary"><i class="bi bi-filetype-xlsx"></i></div>
+            <h5 class="mt-3">{{ t.f_template }}</h5>
+            <p class="text-secondary small">{{ t.f_upload }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature card h-100 shadow-sm border-0">
+          <div class="card-body">
+            <div class="icon bg-success-subtle text-success"><i class="bi bi-table"></i></div>
+            <h5 class="mt-3">{{ t.f_results_excel }}</h5>
+            <p class="text-secondary small">{{ t.f_history }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature card h-100 shadow-sm border-0">
+          <div class="card-body">
+            <div class="icon bg-danger-subtle text-danger"><i class="bi bi-filetype-pdf"></i></div>
+            <h5 class="mt-3">{{ t.f_results_pdf }}</h5>
+            <p class="text-secondary small">{{ t.f_multilang }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 {% endblock %}
