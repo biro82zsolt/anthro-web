@@ -1,38 +1,47 @@
 import os
 from io import BytesIO
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session, current_app
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+
+from flask import (
+    Flask, render_template, request, redirect, url_for, flash,
+    send_file, session, current_app, abort
+)
+from flask_login import (
+    LoginManager, login_user, login_required, logout_user, current_user
+)
 from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from dotenv import load_dotenv
+
 from models import db, User, Upload, Result
 from compute import process_excel_to_results, export_results_excel, export_results_pdfs
+from admin import init_admin  # -> itt történik az Admin felület teljes bekötése
 
 # ---- .env betöltése ----
-from dotenv import load_dotenv
-load_dotenv()   # .env fájl értékeit környezeti változóként betölti
+load_dotenv()
 
 mail = Mail()
 login_manager = LoginManager()
 
-# ----- Config -----
+# Engedélyezett kiterjesztések (feltöltéshez)
+ALLOWED_EXT = {".xlsx", ".xls"}
+
+
+# ----- App factory -----
 def create_app():
     app = Flask(__name__)
-    # alap config
+
+    # Alap config
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///app.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads")
-    app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20MB
-
+    app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20 MB
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-    ALLOWED_EXT = {".xlsx", ".xls"}
-
-
-
-    # e-mail config (env-ből)
+    # E-mail config (env-ből)
     app.config.update(
         MAIL_SERVER=os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
         MAIL_PORT=int(os.environ.get("MAIL_PORT", "587")),
@@ -44,17 +53,19 @@ def create_app():
         ADMIN_EMAIL=os.environ.get("ADMIN_EMAIL"),
     )
 
-    # bővítmények bekötése
+    # Bővítmények bekötése
     db.init_app(app)
     mail.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "login"
 
-    # első indításkor táblák
+    # Táblák létrehozása és Admin felület inicializálása
     with app.app_context():
         db.create_all()
+        init_admin(app)  # <- CSAK innen, nincs másik Admin példány
 
     return app
+
 
 app = create_app()
 
@@ -62,6 +73,7 @@ app = create_app()
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 # ----- I18N (nagyon egyszerű) -----
 STRINGS = {
@@ -129,10 +141,12 @@ STRINGS = {
     }
 }
 
+
 @app.context_processor
 def inject_i18n():
     lang = session.get("lang", "hu")
     return dict(t=STRINGS.get(lang, STRINGS["hu"]), lang=lang)
+
 
 @app.route("/lang/<code>")
 def set_lang(code):
@@ -140,10 +154,12 @@ def set_lang(code):
         session["lang"] = code
     return redirect(request.referrer or url_for("index"))
 
+
 # ----- Public pages -----
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 # ----- Auth -----
 @app.route("/register", methods=["GET", "POST"])
@@ -161,6 +177,7 @@ def register():
         flash("Sikeres regisztráció. Jelentkezz be! / Registration successful.", "success")
         return redirect(url_for("login"))
     return render_template("auth_register.html")
+
 
 @app.route("/request-access", methods=["GET", "POST"])
 def request_access():
@@ -210,21 +227,26 @@ def login():
         return redirect(url_for("dashboard"))
     return render_template("auth_login.html")
 
+
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for("index"))
 
+
 # ----- Dashboard -----
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    uploads = (Upload.query
-               .filter_by(user_id=current_user.id)
-               .order_by(Upload.created_at.desc())
-               .all())
+    uploads = (
+        Upload.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Upload.created_at.desc())
+        .all()
+    )
     return render_template("dashboard.html", uploads=uploads)
+
 
 @app.route("/download/template")
 @login_required
@@ -232,7 +254,6 @@ def download_template():
     path = os.path.join(current_app.root_path, "static", "template.xlsx")
     return send_file(path, as_attachment=True, download_name="template.xlsx")
 
-ALLOWED_EXT = {".xlsx", ".xls"}  # modul-szinten, app.py tetején
 
 @app.route("/upload", methods=["POST"])
 @login_required
@@ -288,6 +309,7 @@ def view_upload(upload_id):
     results = Result.query.filter_by(upload_id=up.id).all()
     return render_template("uploads.html", up=up, results=results)
 
+
 @app.route("/uploads/<int:upload_id>/export/xlsx")
 @login_required
 def export_upload_xlsx(upload_id):
@@ -301,6 +323,7 @@ def export_upload_xlsx(upload_id):
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
+
 @app.route("/uploads/<int:upload_id>/export/pdfs")
 @login_required
 def export_upload_pdfs(upload_id):
@@ -308,6 +331,12 @@ def export_upload_pdfs(upload_id):
     results = Result.query.filter_by(upload_id=up.id).all()
     zip_bytes, zip_name = export_results_pdfs(results)
     return send_file(BytesIO(zip_bytes), as_attachment=True, download_name=zip_name, mimetype="application/zip")
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template("403.html"), 403
+
 
 if __name__ == "__main__":
     app.run(debug=True)

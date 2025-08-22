@@ -9,14 +9,24 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255), unique=True, nullable=False)
     username = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    uploads = db.relationship("Upload", back_populates="user", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<User {self.username}>"
 class Upload(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     original_filename = db.Column(db.String(255))
     stored_path = db.Column(db.String(500))
+
+    user = db.relationship("User", back_populates="uploads")
+
+    def __repr__(self):
+        return f"<Upload {self.id} by {self.user_id}>"
 
 class Result(db.Model):
     id = db.Column(db.Integer, primary_key=True)
