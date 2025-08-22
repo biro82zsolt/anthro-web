@@ -66,6 +66,25 @@ def create_app():
 
     return app
 
+def seed_admin_from_env():
+    email = os.getenv("ADMIN_SEED_EMAIL")
+    username = os.getenv("ADMIN_SEED_USERNAME")
+    password = os.getenv("ADMIN_SEED_PASSWORD")
+    if not (email and username and password):
+        return
+    # már létezik?
+    if User.query.filter((User.email == email) | (User.username == username)).first():
+        return
+    from werkzeug.security import generate_password_hash
+    u = User(
+        email=email.strip().lower(),
+        username=username.strip(),
+        password_hash=generate_password_hash(password),
+        is_admin=True,
+    )
+    db.session.add(u)
+    db.session.commit()
+    print(">>> Admin user seeded:", email)
 
 app = create_app()
 
