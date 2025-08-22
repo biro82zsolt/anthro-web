@@ -63,7 +63,7 @@ def create_app():
     with app.app_context():
         db.create_all()
         init_admin(app)  # <- CSAK innen, nincs másik Admin példány
-
+        seed_admin_from_env()
     return app
 
 def seed_admin_from_env():
@@ -75,7 +75,7 @@ def seed_admin_from_env():
     # már létezik?
     if User.query.filter((User.email == email) | (User.username == username)).first():
         return
-    from werkzeug.security import generate_password_hash
+
     u = User(
         email=email.strip().lower(),
         username=username.strip(),
