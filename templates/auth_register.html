@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ t.register }}</h2>
+<form method="post">
+  <label>Felhasználónév <input name="username" required></label>
+  <label>Email <input name="email" type="email" required></label>
+  <label>Jelszó <input name="password" type="password" required></label>
+  <button class="btn" type="submit">{{ t.register }}</button>
+</form>
+{% endblock %}

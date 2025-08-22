@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ t.dashboard }}</h2>
+
+<section>
+  <h3>{{ t.download_template }}</h3>
+  <a class="btn" href="{{ url_for('download_template') }}">template.xlsx</a>
+</section>
+
+<section>
+  <h3>{{ t.upload_excel }}</h3>
+  <form method="post" action="{{ url_for('upload_excel') }}" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx,.xls" required>
+    <button class="btn" type="submit">Upload</button>
+  </form>
+</section>
+
+<section>
+  <h3>{{ t.your_uploads }}</h3>
+  {% if uploads %}
+    <ul class="list">
+    {% for u in uploads %}
+      <li>
+        <a href="{{ url_for('view_upload', upload_id=u.id) }}">#{{u.id}} – {{u.original_filename}} ({{u.created_at}})</a>
+      </li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    <p>Még nincs feltöltésed.</p>
+  {% endif %}
+</section>
+{% endblock %}

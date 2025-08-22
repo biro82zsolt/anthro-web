@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ t.login }}</h2>
+<form method="post">
+  <label>Email <input name="email" type="email" required></label>
+  <label>Jelszó <input name="password" type="password" required></label>
+  <button class="btn" type="submit">{{ t.login }}</button>
+</form>
+{% endblock %}

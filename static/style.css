@@ -1,0 +1,18 @@
+body { font-family: system-ui, Segoe UI, Arial; margin: 0; color: #1f2937; }
+.nav { display:flex; gap:1rem; padding:0.75rem 1rem; background:#111827; color:#fff; align-items:center; }
+.nav a { color:#e5e7eb; text-decoration:none; }
+.nav .spacer { flex:1; }
+.container { max-width: 960px; margin: 1.5rem auto; padding: 0 1rem; }
+.hero { padding: 1rem 0; }
+.btn { display:inline-block; background:#2563eb; color:#fff; padding:0.5rem 0.9rem; border-radius:8px; text-decoration:none; border:none; }
+.btn-secondary { background:#6b7280; }
+.flash > div { padding: 0.5rem 0.75rem; margin: 0.25rem 0; border-radius: 6px; }
+.flash-success { background:#dcfce7; }
+.flash-danger { background:#fee2e2; }
+.flash-warning { background:#fef3c7; }
+form label { display:block; margin:0.5rem 0; }
+input[type=file], input[type=text], input[type=password], input[type=email] { padding:0.4rem; width: min(480px, 100%); }
+.list { list-style:none; padding:0; }
+.list li { padding:0.4rem 0; border-bottom:1px solid #eee; }
+.table { width:100%; border-collapse: collapse; }
+.table th, .table td { border-bottom:1px solid #e5e7eb; padding:0.5rem; text-align:left; }

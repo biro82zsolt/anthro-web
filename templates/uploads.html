@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Feltöltés #{{ up.id }} – {{ up.original_filename }}</h2>
+<p>
+  <a class="btn" href="{{ url_for('export_upload_xlsx', upload_id=up.id) }}">{{ t.results_xlsx }}</a>
+  <a class="btn btn-secondary" href="{{ url_for('export_upload_pdfs', upload_id=up.id) }}">{{ t.results_pdfs }}</a>
+</p>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Név</th><th>Születési dátum</th><th>Mérés dátuma</th><th>TTM</th><th>TTS</th>
+      <th>BMI</th><th>PHV</th><th>PLX</th><th>MK</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in results %}
+    <tr>
+      <td>{{ r.name }}</td>
+      <td>{{ r.birth_date }}</td>
+      <td>{{ r.meas_date }}</td>
+      <td>{{ '%.1f'|format(r.ttm or 0) if r.ttm else '' }}</td>
+      <td>{{ '%.1f'|format(r.tts or 0) if r.tts else '' }}</td>
+      <td>{{ '%.2f'|format(r.bmi or 0) if r.bmi else '' }} {{ '(' ~ r.bmi_cat ~ ')' if r.bmi_cat }}</td>
+      <td>{{ '%.2f'|format(r.phv or 0) if r.phv else '' }} {{ '(' ~ r.phv_cat ~ ')' if r.phv_cat }}</td>
+      <td>{{ '%.2f'|format(r.plx or 0) if r.plx else '' }}</td>
+      <td>{{ '%.2f'|format(r.mk or 0) if r.mk else '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
