@@ -77,9 +77,42 @@ TRANSLATIONS = {
     },
 }
 
-def _t(key: str, lang: str) -> str:
+# --- Nyelvi címkék (HU/EN) ---
+def _t(lang):
     lang = (lang or "hu").lower()
-    return TRANSLATIONS.get(lang, TRANSLATIONS["hu"]).get(key, key)
+    if lang not in ("hu", "en"):
+        lang = "hu"
+    return {
+        "title":        {"hu":"Egyéni visszajelzés","en":"Individual Feedback"}[lang],
+        "subtitle":     {"hu":"Sporttudományi / antropometriai összefoglaló","en":"Sports science / anthropometry summary"}[lang],
+        "name":         {"hu":"Név","en":"Name"}[lang],
+        "birth":        {"hu":"Születési dátum","en":"Birth date"}[lang],
+        "measure":      {"hu":"Mérés dátuma","en":"Measurement date"}[lang],
+        "height":       {"hu":"Testmagasság","en":"Height"},
+        "weight":       {"hu":"Testsúly","en":"Weight"},
+        "bmi":          {"hu":"BMI","en":"BMI"},
+        "bmi_cat":      {"hu":"(kategória)","en":"(category)"},
+        "bodyfat":      {"hu":"Testzsír","en":"Body fat"},
+        "vtm":          {"hu":"Várható végső magasság","en":"Predicted adult height"},
+        "table_head":   {"hu":"Mutató","en":"Metric"}[lang],
+        "table_val":    {"hu":"Érték","en":"Value"}[lang],
+        "table_note":   {"hu":"Megjegyzés","en":"Note"}[lang],
+        "endo":         {"hu":"Endomorfia","en":"Endomorphy"}[lang],
+        "mezo":         {"hu":"Mezomorfia","en":"Mesomorphy"}[lang],
+        "ekto":         {"hu":"Ektomorfia","en":"Ectomorphy"}[lang],
+        "phv":          {"hu":"PHV","en":"PHV"}[lang],
+        "mk":           {"hu":"MK (korrekció)","en":"MK (correction)"}[lang],
+        "plx":          {"hu":"PLX","en":"PLX"}[lang],
+        "sum6":         {"hu":"Sum of 6 skinfolds","en":"Sum of 6 skinfolds"}[lang],
+        "quick":        {"hu":"Rövid értelmezés","en":"Quick interpretation"}[lang],
+        "diff":         {"hu":"A várható végső és aktuális magasság különbsége","en":"Difference between predicted adult and current height"}[lang],
+        "disclaimer":   {
+            "hu":"Ez a visszajelzés tájékoztató jellegű. A méréseket standardizált protokoll szerint érdemes ismételni.",
+            "en":"This report is for informational purposes. Measurements should be repeated using a standardized protocol."
+        }[lang],
+        "cm":"cm","kg":"kg","pct":"%"
+    }
+
 
 def _get_first(obj, *names, default=None):
     """Több lehetséges attribútumnév közül az első létező érték."""
@@ -285,6 +318,7 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
     """Egy egyéni visszajelző PDF BytesIO-ként (HU/EN)."""
     _ensure_font()
     ss, badge, kpi, smallmuted = _styles()
+    TXT = _t(lang)
 
     buff = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -427,7 +461,7 @@ def export_results_pdfs(results, lang="hu"):
             raw_name = _get_first(r, "name", "full_name", "student_name", default="unknown")
             safe = "".join(ch for ch in str(raw_name) if ch.isalnum() or ch in (" ", "-", "_")).strip() or "unknown"
 
-            pdf_io = _build_single_pdf(r, logo_path=logo_path if os.path.isfile(logo_path) else None, lang=lang)
+            pdf_io = _build_single_pdf(r, lang=lang, logo_path=logo_path if os.path.isfile(logo_path) else None, lang=lang)
             zf.writestr(f"{safe}.pdf", pdf_io.read())
 
     zip_buf.seek(0)
