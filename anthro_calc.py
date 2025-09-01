@@ -214,8 +214,8 @@ def compute_all_metrics(
     HUS = _to_float(record.get("HUS"))
     TDS = _to_float(record.get("TDS"))
 
-    birth = parse_date(record.get("Születési dátum"))
-    meas  = parse_date(record.get("Mérés dátuma"))
+    birth = parse_date(record.get("Születési dátum") or record.get("Birth date"))
+    meas = parse_date(record.get("Mérés dátuma") or record.get("Measurement date"))
     CA = years_between(birth, meas)  # kronológiai életkor (év)
 
     raw_sex = sex if sex is not None else record.get("Nem")

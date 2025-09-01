@@ -191,47 +191,81 @@ def _to_date_like(x):
         return x.date()
     return x
 
+def _normalize_record_keys(rec: dict) -> dict:
+    out = dict(rec)
+
+    # 0) Zárójeles kódok felvétele külön kulcsként (pl. "Height (TTM)" -> out["TTM"] = érték)
+    for k, v in list(out.items()):
+        if k is None:
+            continue
+        m = re.search(r"\(([^)]+)\)\s*$", str(k))
+        if m:
+            code = m.group(1).strip()
+            if code and code not in out and v not in (None, ""):
+                out[code] = v
+
+    # 1) Aliases – HU/EN oszlopnevek egységesítése a számoló függvény magyar kulcsaira
+    aliases = {
+        # név, nem
+        "Name": "Név",
+        "Sex": "Nem",
+
+        # dátumok  ⟵ EZ HIÁNYZOTT
+        "Birth date": "Születési dátum",
+        "Measurement date": "Mérés dátuma",
+
+        # TTM/TTS/ÜLŐ
+        "Height": "TTM",
+        "Height (TTM)": "TTM",
+        "Stature": "TTM",               # gyakori angol szinonima
+        "Weight": "TTS",
+        "Body mass": "TTS",             # gyakori angol szinonima
+        "Weight (TTS)": "TTS",
+        "Sitting height": "ÜLŐ",
+        "Sitting Height": "ÜLŐ",
+        "Sitting height (cm)": "ÜLŐ",
+    }
+    for src, dst in aliases.items():
+        if dst not in out and src in out and out[src] not in (None, ""):
+            out[dst] = out[src]
+
+    return out
+
 def process_excel_to_results(xlsx_path: str, user_id: int):
     df = pd.read_excel(xlsx_path)
     rows = []
     for _, row in df.iterrows():
-        rec = row.to_dict()
+        rec = _normalize_record_keys(row.to_dict())
 
-        name = rec.get("Név") or rec.get("Name")
-        sex = rec.get("Nem") or rec.get("Sex")
-        birth = rec.get("Születési dátum") or rec.get("Birth date")
-        meas = rec.get("Mérés dátuma") or rec.get("Measurement date")
+        name = rec.get("Név") or rec.get("Name") or "N/A"
+        sex  = rec.get("Nem") or rec.get("Sex")
 
-        # ha a ref fájl más helyen van, add át: ref_path="mk_components.xlsx"
+        # Számítás a normalizált rekorddal
         res = compute_all_metrics(rec, sex=sex, ref_path="mk_components.xlsx")
 
         r = Result(
             user_id=user_id,
             name=name,
-            birth_date=_to_date_like(rec.get("Születési dátum")),
+            birth_date=_to_date_like(rec.get("Születési dátum")),  # <- már megvan HU kulccsal
             meas_date=_to_date_like(rec.get("Mérés dátuma")),
             ttm=rec.get("TTM"),
             tts=rec.get("TTS"),
-
             ca_years=res.age_years,
             plx=res.plx,
             mk_raw=res.mk_raw,
             mk=res.mk,
             mk_corr_factor=res.mk_corr_factor,
             vttm=res.vttm,
-
             sum6=res.sum6,
             bodyfat_percent=res.bodyfat_percent,
             bmi=res.bmi,
             bmi_cat=res.bmi_cat,
-
             endo=res.endomorphy,
             endo_cat=res.endomorphy_cat,
             mezo=res.mesomorphy,
             mezo_cat=res.mesomorphy_cat,
             ekto=res.ectomorphy,
             ekto_cat=res.ectomorphy_cat,
-
             phv=res.phv,
             phv_cat=res.phv_cat,
         )
