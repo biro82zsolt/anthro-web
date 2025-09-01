@@ -85,6 +85,36 @@ TRANSLATIONS = {
     },
 }
 
+def _localize_bmi_cat(cat: str, lang: str) -> str:
+    if not cat:
+        return ""
+    cat = cat.strip().lower()
+    if lang == "en":
+        mapping = {
+            "túlsúlyos": "overweight",
+            "normális testsúly": "normal weight",
+            "enyhe soványság": "mild thinness",
+            "mérsékelt soványság": "moderate thinness",
+            "súlyos soványság": "severe thinness",
+        }
+        return mapping.get(cat, cat)
+    return cat
+
+def _localize_phv_cat(cat: str, lang: str) -> str:
+    if not cat:
+        return ""
+    cat = cat.strip().lower()
+    if lang == "en":
+        mapping = {
+            "magas": "high",
+            "alacsony": "low",
+            "normál": "normal",
+            "ismeretlen": "unknown",
+        }
+        return mapping.get(cat, cat)
+    return cat
+
+
 def _t(key: str, lang: str = "hu") -> str:
     """Egyszerű i18n: kulcs alapján visszaadja a fordítást a megadott nyelven."""
     lang = (lang or "hu").lower()
@@ -298,34 +328,35 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
     )
     story = []
 
-    # --- fejléc: logó + név + dátumok
+    # --- fejléc: meta balra, logó jobbra
     header_cells = []
 
-    # bal: logó
-    if logo_path and os.path.isfile(logo_path):
-        try:
-            img = Image(logo_path, width=28*mm, height=28*mm, kind='proportional')
-            header_cells.append([img])
-        except Exception:
-            header_cells.append([""])
-    else:
-        header_cells.append([""])
-
-    # jobb: meta
+    # bal: meta (név + dátumok) – BALRA igazítva
     name = _get_first(res, "name", "full_name", "student_name", default="-")
     birth = _get_first(res, "birth_date", "birth")
     meas  = _get_first(res, "measure_date", "meas_date")
 
     meta_html = (
-        f"<para align='right'><font size='16'><b>{name}</b></font><br/>"
+        f"<para align='left'><font size='16'><b>{name}</b></font><br/>"
         f"{_t('birth_date', lang)}: <b>{_safe_date_str(birth)}</b><br/>"
         f"{_t('meas_date', lang)}: <b>{_safe_date_str(meas)}</b></para>"
     )
-    header_cells.append([Paragraph(meta_html, ss["Normal"])])
+    meta_para = Paragraph(meta_html, ss["Normal"])
 
-    header = Table(header_cells, colWidths=[30*mm, None])
+    # jobb: logó (ha van)
+    logo_cell = [""]
+    if logo_path and os.path.isfile(logo_path):
+        try:
+            img = Image(logo_path, width=28*mm, height=28*mm, kind='proportional')
+            logo_cell = [img]
+        except Exception:
+            pass
+
+    # táblázat: bal meta, jobb logó (jobb oldali cella jobbra igazítva)
+    header = Table([[meta_para, logo_cell[0]]], colWidths=[None, 30*mm])
     header.setStyle(TableStyle([
         ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("ALIGN", (1,0), (1,0), "RIGHT"),
         ("BOTTOMPADDING", (0,0), (-1,-1), 6),
     ]))
     story += [header, Spacer(1, 8)]
@@ -394,16 +425,20 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
 
     # --- rövid értelmezés
     tips = []
-    bmi_cat = _get_first(res, "bmi_cat")
-    if bmi_cat:
-        tips.append(f"{_t('note_bmi', lang)}: <b>{bmi_cat}</b>.")
-    phv_cat = _get_first(res, "phv_cat")
-    if phv_cat:
-        tips.append(f"{_t('note_phv', lang)}: <b>{phv_cat}</b>.")
+    bmi_cat_raw = _get_first(res, "bmi_cat")
+    bmi_cat_loc = _localize_bmi_cat(bmi_cat_raw, lang)
+    if bmi_cat_loc:
+        tips.append(f"{_t('note_bmi', lang)}: <b>{bmi_cat_loc}</b>.")
+
+    phv_cat_raw = _get_first(res, "phv_cat")
+    phv_cat_loc = _localize_phv_cat(phv_cat_raw, lang)
+    if phv_cat_loc:
+        tips.append(f"{_t('note_phv', lang)}: <b>{phv_cat_loc}</b>.")
+
     if vtm is not None and height_cm is not None:
         try:
             diff = float(vtm) - float(height_cm)
-            tips.append(f"{_t('note_delta_height', lang)}: <b>{_fmt(diff,1)} {_t('cm', lang)}</b>.")
+            tips.append(f"{_t('note_delta_height', lang)}: <b>{_fmt(diff, 1)} cm</b>.")
         except Exception:
             pass
 
