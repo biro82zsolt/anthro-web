@@ -5,16 +5,20 @@
     <div class="card shadow-sm border-0">
       <div class="card-body p-4">
         <h1 class="h4 mb-3">{{ t.login }}</h1>
-        <form method="post">
+        <form method="post" novalidate>
           <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input name="email" type="email" class="form-control" required autocomplete="username">
+            <label class="form-label" for="email">{{ t.login_email }}</label>
+            <input id="email" name="email" type="email" class="form-control"
+                   required autocomplete="username">
           </div>
           <div class="mb-3">
-            <label class="form-label">Jelszó / Password</label>
-            <input name="password" type="password" class="form-control" required autocomplete="current-password">
+            <label class="form-label" for="password">{{ t.login_password }}</label>
+            <input id="password" name="password" type="password" class="form-control"
+                   required autocomplete="current-password">
           </div>
-          <button class="btn btn-primary w-100" type="submit"><i class="bi bi-box-arrow-in-right me-1"></i>{{ t.login }}</button>
+          <button class="btn btn-primary w-100" type="submit">
+            <i class="bi bi-box-arrow-in-right me-1"></i>{{ t.login_button }}
+          </button>
         </form>
       </div>
     </div>

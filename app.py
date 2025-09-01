@@ -126,6 +126,15 @@ STRINGS = {
         "f_results_pdf": "Egyéni visszajelző lapok exportja (PDF)",
         "f_history": "Saját feltöltések visszanézése",
         "f_multilang": "Kétnyelvű felület (HU/EN)",
+        "request_access_title": "Hozzáférés igénylése",
+        "field_name": "Név",
+        "field_email": "E-mail",
+        "field_org": "Szervezet",
+        "field_message": "Üzenet",
+        "btn_send": "Küldés",
+        "login_email": "E-mail",
+        "login_password": "Jelszó",
+        "login_button": "Bejelentkezés",
     },
     "en": {
         "site_title": "Anthropometry",
@@ -157,6 +166,15 @@ STRINGS = {
         "f_results_pdf": "Export individual feedback (PDF)",
         "f_history": "View your previous uploads",
         "f_multilang": "Bilingual interface (HU/EN)",
+        "request_access_title": "Request access",
+        "field_name": "Name",
+        "field_email": "Email",
+        "field_org": "Organization",
+        "field_message": "Message",
+        "btn_send": "Send",
+        "login_email": "Email",
+        "login_password": "Password",
+        "login_button": "Log in",
     }
 }
 

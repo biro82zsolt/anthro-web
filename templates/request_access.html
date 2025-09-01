@@ -4,27 +4,36 @@
   <div class="col-md-8 col-lg-7">
     <div class="card shadow-sm border-0">
       <div class="card-body p-4">
-        <h1 class="h4 mb-3"><i class="bi bi-person-plus me-1"></i>{{ t.request_access }}</h1>
-        <form method="post">
+        <h1 class="h4 mb-3">
+          <i class="bi bi-person-plus me-1"></i>{{ t.request_access_title }}
+        </h1>
+
+        <form method="post" novalidate>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label">Név / Name</label>
-              <input class="form-control" name="name" required>
+              <label class="form-label" for="name">{{ t.field_name }}</label>
+              <input class="form-control" id="name" name="name" required>
             </div>
+
             <div class="col-md-6">
-              <label class="form-label">Email</label>
-              <input class="form-control" type="email" name="email" required>
+              <label class="form-label" for="email">{{ t.field_email }}</label>
+              <input class="form-control" id="email" type="email" name="email" required>
             </div>
+
             <div class="col-12">
-              <label class="form-label">Szervezet / Organization</label>
-              <input class="form-control" name="org">
+              <label class="form-label" for="org">{{ t.field_org }}</label>
+              <input class="form-control" id="org" name="org">
             </div>
+
             <div class="col-12">
-              <label class="form-label">Üzenet / Message</label>
-              <textarea class="form-control" name="message" rows="4"></textarea>
+              <label class="form-label" for="message">{{ t.field_message }}</label>
+              <textarea class="form-control" id="message" name="message" rows="4"></textarea>
             </div>
           </div>
-          <button class="btn btn-primary mt-3" type="submit"><i class="bi bi-send me-1"></i>Küldés / Send</button>
+
+          <button class="btn btn-primary mt-3" type="submit">
+            <i class="bi bi-send me-1"></i>{{ t.btn_send }}
+          </button>
         </form>
       </div>
     </div>
