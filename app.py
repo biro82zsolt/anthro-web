@@ -112,7 +112,7 @@ STRINGS = {
         "lang_hu": "Magyar",
         "lang_en": "English",
         "request_access": "Hozzáférés igénylése",
-        "about_title": "Mi ez az oldal?",
+        "about_title": "Antropometria kalkulátor?",
         "about_p1": "Az oldal antropometriai és sporttudományi mérések feldolgozását és visszajelzését támogatja.",
         "about_p2": "Az adatok Excel sablonból tölthetők fel; a rendszer kiszámítja a fő mutatókat (BMI, endo/mezo/ekto, testzsír%, PHV, stb.).",
         "about_li1": "Iskolai/sportegyesületi mérések egységes feldolgozása",
@@ -143,7 +143,7 @@ STRINGS = {
         "lang_hu": "Magyar",
         "lang_en": "English",
         "request_access": "Request access",
-        "about_title": "What is this site?",
+        "about_title": "Anthropometry Calculator?",
         "about_p1": "This app processes anthropometric & sport science measurements and provides feedback.",
         "about_p2": "Data is uploaded via an Excel template; the system computes key indices (BMI, endo/meso/ecto, body fat %, PHV, etc.).",
         "about_li1": "Consistent processing for school/club assessments",
@@ -348,8 +348,21 @@ def export_upload_xlsx(upload_id):
 def export_upload_pdfs(upload_id):
     up = Upload.query.filter_by(id=upload_id, user_id=current_user.id).first_or_404()
     results = Result.query.filter_by(upload_id=up.id).all()
-    zip_bytes, zip_name = export_results_pdfs(results)
-    return send_file(BytesIO(zip_bytes), as_attachment=True, download_name=zip_name, mimetype="application/zip")
+
+    # a felület aktuális nyelve
+    lang = session.get("lang", "hu").lower()
+    # opcionális felülírás query-ből: ?lang=en
+    lang = request.args.get("lang", lang).lower()
+    if lang not in ("hu", "en"):
+        lang = "hu"
+
+    zip_bytes, zip_name = export_results_pdfs(results, lang=lang)
+    return send_file(
+        BytesIO(zip_bytes),
+        as_attachment=True,
+        download_name=zip_name,
+        mimetype="application/zip"
+    )
 
 
 @app.errorhandler(403)
