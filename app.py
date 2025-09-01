@@ -104,7 +104,8 @@ STRINGS = {
         "register": "Regisztráció",
         "logout": "Kijelentkezés",
         "dashboard": "Vezérlőpult",
-        "download_template": "Excel sablon letöltése",
+        "download_template_hu": "Excel sablon letöltése (HU)",
+        "download_template_en": "Excel sablon letöltése (EN)",
         "upload_excel": "Excel feltöltése",
         "your_uploads": "Feltöltéseid",
         "results_xlsx": "Eredmények (Excel)",
@@ -135,7 +136,8 @@ STRINGS = {
         "register": "Sign up",
         "logout": "Log out",
         "dashboard": "Dashboard",
-        "download_template": "Download Excel template",
+        "download_template_hu": "Download Excel template (HU)",
+        "download_template_en": "Download Excel template (EN)",
         "upload_excel": "Upload Excel",
         "your_uploads": "Your uploads",
         "results_xlsx": "Results (Excel)",
@@ -267,10 +269,11 @@ def dashboard():
     return render_template("dashboard.html", uploads=uploads)
 
 
-@app.route("/download/template")
+@app.route("/download/template/<lang>")
 @login_required
-def download_template():
-    path = os.path.join(current_app.root_path, "static", "template.xlsx")
+def download_template(lang):
+    fname = "template_en.xlsx" if lang == "en" else "template_hu.xlsx"
+    path = os.path.join(current_app.root_path, "static", fname)
     return send_file(path, as_attachment=True, download_name="template.xlsx")
 
 

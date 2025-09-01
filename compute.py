@@ -114,6 +114,41 @@ def _localize_phv_cat(cat: str, lang: str) -> str:
         return mapping.get(cat, cat)
     return cat
 
+def _localize_somatotype(cat: str, kind: str, lang: str) -> str:
+    """
+    kind ∈ {"endo","mezo","ekto"} – HU → EN fordítás csak akkor, ha lang=="en".
+    HU esetben az eredeti magyar szöveget adja vissza.
+    """
+    if not cat:
+        return ""
+    if lang != "en":
+        return cat
+
+    c = cat.strip().lower()
+
+    if kind == "endo":
+        mapping = {
+            "hízásra hajlamos testalkat": "high propensity to gain fat",
+            "hízásra közepes mértékben hajlamos testalkat": "moderate propensity to gain fat",
+            "hízásra nem hajlamos testalkat": "low propensity to gain fat",
+        }
+    elif kind == "mezo":
+        mapping = {
+            "nagy mértékben fejleszthető izomzat": "high muscular development potential",
+            "közepes mértékben fejleszthető izomzat": "moderate muscular development potential",
+            "kis mértékben fejleszthető izomzat": "low muscular development potential",
+        }
+    elif kind == "ekto":
+        mapping = {
+            "kifejezetten nyúlánk alkat": "high linearity",
+            "közepesen nyúlánk alkat": "moderate linearity",
+            "alacsony fokú relatív nyúlánkság": "low linearity",
+        }
+    else:
+        mapping = {}
+
+    return mapping.get(c, cat)
+
 
 def _t(key: str, lang: str = "hu") -> str:
     """Egyszerű i18n: kulcs alapján visszaadja a fordítást a megadott nyelven."""
@@ -162,8 +197,10 @@ def process_excel_to_results(xlsx_path: str, user_id: int):
     for _, row in df.iterrows():
         rec = row.to_dict()
 
-        name = rec.get("Név") or rec.get("Name") or "N/A"
-        sex  = rec.get("Nem") or rec.get("Sex")
+        name = rec.get("Név") or rec.get("Name")
+        sex = rec.get("Nem") or rec.get("Sex")
+        birth = rec.get("Születési dátum") or rec.get("Birth date")
+        meas = rec.get("Mérés dátuma") or rec.get("Measurement date")
 
         # ha a ref fájl más helyen van, add át: ref_path="mk_components.xlsx"
         res = compute_all_metrics(rec, sex=sex, ref_path="mk_components.xlsx")
@@ -399,14 +436,41 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
         _t("table_hdr_value", lang),
         _t("table_hdr_note", lang),
     ]]
+
+    # lokalizált kategória-szövegek az EN riporthoz
+    endo_note = _localize_somatotype(_get_first(res, "endomorphy_cat", "endo_cat", default=""), "endo", lang)
+    mezo_note = _localize_somatotype(_get_first(res, "mesomorphy_cat", "mezo_cat", default=""), "mezo", lang)
+    ekto_note = _localize_somatotype(_get_first(res, "ectomorphy_cat", "ekto_cat", default=""), "ekto", lang)
+
     data_rows = []
-    data_rows.append([_t("endomorphy", lang), _fmt(_get_first(res, "endomorphy", "endo"), 2), _get_first(res, "endomorphy_cat", "endo_cat", default="")])
-    data_rows.append([_t("mesomorphy", lang), _fmt(_get_first(res, "mesomorphy", "mezo"), 2), _get_first(res, "mesomorphy_cat", "mezo_cat", default="")])
-    data_rows.append([_t("ectomorphy", lang), _fmt(_get_first(res, "ectomorphy", "ekto"), 2), _get_first(res, "ectomorphy_cat", "ekto_cat", default="")])
-    data_rows.append([_t("phv", lang), _fmt(_get_first(res, "phv"), 2), _get_first(res, "phv_cat", default="")])
-    data_rows.append([_t("mk_corr", lang), _fmt(_get_first(res, "mk"), 2), f"{_t('multiplier', lang)}: {_fmt(_get_first(res, 'mk_corr_factor'), 2)}"])
+    data_rows.append([
+        _t("endomorphy", lang),
+        _fmt(_get_first(res, "endomorphy", "endo"), 2),
+        endo_note
+    ])
+    data_rows.append([
+        _t("mesomorphy", lang),
+        _fmt(_get_first(res, "mesomorphy", "mezo"), 2),
+        mezo_note
+    ])
+    data_rows.append([
+        _t("ectomorphy", lang),
+        _fmt(_get_first(res, "ectomorphy", "ekto"), 2),
+        ekto_note
+    ])
+    data_rows.append([
+        _t("phv", lang),
+        _fmt(_get_first(res, "phv"), 2),
+        _localize_phv_cat(_get_first(res, "phv_cat", default=""), lang)
+    ])
+    data_rows.append([
+        _t("mk_corr", lang),
+        _fmt(_get_first(res, "mk"), 2),
+        f"{_t('multiplier', lang)}: {_fmt(_get_first(res, 'mk_corr_factor'), 2)}"
+    ])
     data_rows.append([_t("plx", lang), _fmt(_get_first(res, "plx"), 2), ""])
     data_rows.append([_t("sum6", lang), _fmt(_get_first(res, "sum6"), 2), ""])
+
     table_data += data_rows
 
     tbl = Table(table_data, colWidths=[60*mm, 35*mm, None])
