@@ -239,14 +239,16 @@ def process_excel_to_results(xlsx_path: str, user_id: int):
 
         name = rec.get("Név") or rec.get("Name") or "N/A"
         sex  = rec.get("Nem") or rec.get("Sex")
+        birth = rec.get("Születési dátum") or rec.get("Birth date")
+        meas  = rec.get("Mérés dátuma") or rec.get("Measurement date")
 
-        # Számítás a normalizált rekorddal
+        # számítás a normalizált rekorddal
         res = compute_all_metrics(rec, sex=sex, ref_path="mk_components.xlsx")
 
         r = Result(
             user_id=user_id,
-            name=name,
-            birth_date=_to_date_like(rec.get("Születési dátum")),  # <- már megvan HU kulccsal
+            name=name,  # <- biztos, hogy mindig van érték
+            birth_date=_to_date_like(rec.get("Születési dátum")),
             meas_date=_to_date_like(rec.get("Mérés dátuma")),
             ttm=rec.get("TTM"),
             tts=rec.get("TTS"),
