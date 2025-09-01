@@ -46,6 +46,10 @@ TRANSLATIONS = {
         "note_phv": "Növekedési csúcs (PHV) státusz",
         "note_delta_height": "A várható végső magasság és az aktuális magasság különbsége",
         "disclaimer": "Ez a visszajelzés tájékoztató jellegű. A méréseket standardizált protokoll szerint érdemes ismételni.",
+        # egységek
+        "cm": "cm",
+        "kg": "kg",
+        "pct": "%"
     },
     "en": {
         "title": "Individual Feedback",
@@ -74,45 +78,19 @@ TRANSLATIONS = {
         "note_phv": "Peak height velocity status",
         "note_delta_height": "Difference between predicted adult height and current height",
         "disclaimer": "This feedback is informational. Measurements should be repeated using a standardized protocol.",
+        # units
+        "cm": "cm",
+        "kg": "kg",
+        "pct": "%"
     },
 }
 
-# --- Nyelvi címkék (HU/EN) ---
-def _t(lang):
+def _t(key: str, lang: str = "hu") -> str:
+    """Egyszerű i18n: kulcs alapján visszaadja a fordítást a megadott nyelven."""
     lang = (lang or "hu").lower()
     if lang not in ("hu", "en"):
         lang = "hu"
-    return {
-        "title":        {"hu":"Egyéni visszajelzés","en":"Individual Feedback"}[lang],
-        "subtitle":     {"hu":"Sporttudományi / antropometriai összefoglaló","en":"Sports science / anthropometry summary"}[lang],
-        "name":         {"hu":"Név","en":"Name"}[lang],
-        "birth":        {"hu":"Születési dátum","en":"Birth date"}[lang],
-        "measure":      {"hu":"Mérés dátuma","en":"Measurement date"}[lang],
-        "height":       {"hu":"Testmagasság","en":"Height"},
-        "weight":       {"hu":"Testsúly","en":"Weight"},
-        "bmi":          {"hu":"BMI","en":"BMI"},
-        "bmi_cat":      {"hu":"(kategória)","en":"(category)"},
-        "bodyfat":      {"hu":"Testzsír","en":"Body fat"},
-        "vtm":          {"hu":"Várható végső magasság","en":"Predicted adult height"},
-        "table_head":   {"hu":"Mutató","en":"Metric"}[lang],
-        "table_val":    {"hu":"Érték","en":"Value"}[lang],
-        "table_note":   {"hu":"Megjegyzés","en":"Note"}[lang],
-        "endo":         {"hu":"Endomorfia","en":"Endomorphy"}[lang],
-        "mezo":         {"hu":"Mezomorfia","en":"Mesomorphy"}[lang],
-        "ekto":         {"hu":"Ektomorfia","en":"Ectomorphy"}[lang],
-        "phv":          {"hu":"PHV","en":"PHV"}[lang],
-        "mk":           {"hu":"MK (korrekció)","en":"MK (correction)"}[lang],
-        "plx":          {"hu":"PLX","en":"PLX"}[lang],
-        "sum6":         {"hu":"Sum of 6 skinfolds","en":"Sum of 6 skinfolds"}[lang],
-        "quick":        {"hu":"Rövid értelmezés","en":"Quick interpretation"}[lang],
-        "diff":         {"hu":"A várható végső és aktuális magasság különbsége","en":"Difference between predicted adult and current height"}[lang],
-        "disclaimer":   {
-            "hu":"Ez a visszajelzés tájékoztató jellegű. A méréseket standardizált protokoll szerint érdemes ismételni.",
-            "en":"This report is for informational purposes. Measurements should be repeated using a standardized protocol."
-        }[lang],
-        "cm":"cm","kg":"kg","pct":"%"
-    }
-
+    return TRANSLATIONS.get(lang, {}).get(key, key)
 
 def _get_first(obj, *names, default=None):
     """Több lehetséges attribútumnév közül az első létező érték."""
@@ -126,15 +104,12 @@ def _safe_date_str(d):
     try:
         if d is None:
             return "-"
-        # pandas.Timestamp / date / datetime
         if hasattr(d, "strftime"):
             return d.strftime("%Y-%m-%d")
-        # már string
         s = str(d)
         return s[:10]
     except Exception:
         return str(d) if d is not None else "-"
-
 
 # ---------- Excel feldolgozás ----------
 
@@ -183,7 +158,6 @@ def process_excel_to_results(xlsx_path: str, user_id: int):
             bmi=res.bmi,
             bmi_cat=res.bmi_cat,
 
-            # a DB-ben endo/mezo/ekto a rövid neveken vannak:
             endo=res.endomorphy,
             endo_cat=res.endomorphy_cat,
             mezo=res.mesomorphy,
@@ -241,7 +215,7 @@ def _ensure_font():
     global _FONT_REGISTERED
     if _FONT_REGISTERED:
         return
-    here = os.path.dirname(os.path.abspath(_file_))
+    here = os.path.dirname(os.path.abspath(__file__))  # <-- helyesen __file__
     font_path = os.path.join(here, "static", "fonts", "DejaVuSans.ttf")
     if os.path.isfile(font_path):
         try:
@@ -252,7 +226,6 @@ def _ensure_font():
 
 def _styles():
     ss = getSampleStyleSheet()
-    # ha a font regisztrált, használd, különben Helvetica
     has_djv = any(getattr(f, "faceName", "") == "DejaVuSans" for f in pdfmetrics._fonts.values())
     base_font = "DejaVuSans" if has_djv else "Helvetica"
 
@@ -313,12 +286,10 @@ def _kpi_card(title, value, unit="", hint=None):
         label += f"<br/><font size='8' color='#6b7280'>{hint}</font>"
     return Paragraph(label, getSampleStyleSheet()["Normal"])
 
-
 def _build_single_pdf(res, logo_path=None, lang="hu"):
     """Egy egyéni visszajelző PDF BytesIO-ként (HU/EN)."""
     _ensure_font()
     ss, badge, kpi, smallmuted = _styles()
-    TXT = _t(lang)
 
     buff = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -371,13 +342,13 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
     vtm       = _get_first(res, "vttm", "vtm")
 
     kpis = [
-        _kpi_card(_t("height", lang), _fmt(height_cm, 1), "cm"),
-        _kpi_card(_t("weight", lang), _fmt(weight_kg, 1), "kg"),
+        _kpi_card(_t("height", lang), _fmt(height_cm, 1), _t("cm", lang)),
+        _kpi_card(_t("weight", lang), _fmt(weight_kg, 1), _t("kg", lang)),
         _kpi_card(_t("bmi", lang),    _fmt(bmi, 1), hint=_get_first(res, "bmi_cat")),
-        _kpi_card(_t("body_fat", lang), _fmt(bf, 1), "%"),
+        _kpi_card(_t("body_fat", lang), _fmt(bf, 1), _t("pct", lang)),
     ]
     if vtm is not None:
-        kpis.append(_kpi_card(_t("final_height", lang), _fmt(vtm, 1), "cm"))
+        kpis.append(_kpi_card(_t("final_height", lang), _fmt(vtm, 1), _t("cm", lang)))
 
     kpi_tbl = Table([kpis], colWidths=[None]*len(kpis))
     kpi_tbl.setStyle(TableStyle([
@@ -411,7 +382,7 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
     tbl.setStyle(TableStyle([
         ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#2563eb")),
         ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("FONTNAME", (0,0), (-1,0), "DejaVuSans" if "DejaVuSans" in [f.faceName for f in pdfmetrics._fonts.values()] else "Helvetica-Bold"),
+        ("FONTNAME", (0,0), (-1,0), "DejaVuSans" if any(getattr(f, "faceName", "") == "DejaVuSans" for f in pdfmetrics._fonts.values()) else "Helvetica-Bold"),
         ("FONTSIZE", (0,0), (-1,0), 11),
         ("ALIGN", (1,1), (1,-1), "RIGHT"),
         ("GRID", (0,0), (-1,-1), 0.25, colors.HexColor("#e5e7eb")),
@@ -432,7 +403,7 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
     if vtm is not None and height_cm is not None:
         try:
             diff = float(vtm) - float(height_cm)
-            tips.append(f"{_t('note_delta_height', lang)}: <b>{_fmt(diff,1)} cm</b>.")
+            tips.append(f"{_t('note_delta_height', lang)}: <b>{_fmt(diff,1)} {_t('cm', lang)}</b>.")
         except Exception:
             pass
 
@@ -447,7 +418,6 @@ def _build_single_pdf(res, logo_path=None, lang="hu"):
     buff.seek(0)
     return buff
 
-
 def export_results_pdfs(results, lang="hu"):
     """
     Egyéni PDF-ek készítése és ZIP-be csomagolása a megadott nyelven (hu/en).
@@ -461,7 +431,11 @@ def export_results_pdfs(results, lang="hu"):
             raw_name = _get_first(r, "name", "full_name", "student_name", default="unknown")
             safe = "".join(ch for ch in str(raw_name) if ch.isalnum() or ch in (" ", "-", "_")).strip() or "unknown"
 
-            pdf_io = _build_single_pdf(r, lang=lang, logo_path=logo_path if os.path.isfile(logo_path) else None, lang=lang)
+            pdf_io = _build_single_pdf(
+                r,
+                logo_path=logo_path if os.path.isfile(logo_path) else None,
+                lang=lang
+            )
             zf.writestr(f"{safe}.pdf", pdf_io.read())
 
     zip_buf.seek(0)
